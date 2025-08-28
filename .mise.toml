@@ -1,91 +1,67 @@
 [tools]
 dprint = "latest"
-bun = "latest"
+action-validator = "latest"
 github-cli = "latest"
 
 [tasks.format]
+alias = "fmt"
 description = "Format code using dprint"
 run = "dprint fmt"
 
-[tasks.check]
-description = "Check code formatting and run all validations (like CI)"
-run = [
-  "echo '=== Checking code formatting with dprint ==='",
-  "dprint check",
-  "echo '=== Validating action.yml ==='",
-  "bunx @action-validator/core action.yml",
-  "echo '=== All checks completed ==='",
-]
+[tasks."lint:config"]
+description = "Check code formatting of toml, json, yaml, ..."
+run = "dprint check"
+
+[tasks."lint:action_yaml"]
+description = "Validating action.yml"
+run = "action-validator action.yml"
+
+[tasks.lint]
+description = "Run all lint"
+depends = ["lint:*"]
 
 [tasks.ci]
 description = "Run all CI checks locally"
-alias = "check"
+depends = ["lint"]
 
 [tasks.release]
-description = "Create a new release with version tag (usage: mise run release -- v1.2.3)"
-depends = ["check"]
+description = "Create a new release with version tag (usage: mise run release v1.2.3)"
 run = '''
-  if [ -z "$1" ]; then 
-    echo 'Error: Please provide version (e.g., mise run release -- v1.2.3)'
+  VERSION="{{arg(name="version")}}"
+
+  if [ -z "$VERSION" ]; then
+    echo 'Error: Please provide version (e.g., mise run release v1.2.3)'
     exit 1
   fi
-  
-  VERSION="$1"
+
   MAJOR_VERSION=$(echo $VERSION | cut -d. -f1)
-  
+
   echo "=== Creating GitHub Action release ==="
   echo "Version: $VERSION (major: $MAJOR_VERSION)"
-  
+
   # Ensure we're on main branch and up to date
   git checkout main
   git pull origin main
-  
+
   # Create and push version tag
   echo "Creating tag: $VERSION"
   git tag -a "$VERSION" -m "Release $VERSION"
   git push origin "$VERSION"
-  
+
   # Create GitHub release using gh CLI
   echo "Creating GitHub release"
   gh release create "$VERSION" \
-    --title "Release $VERSION" \
-    --notes "## Changes
+    --generate-notes
 
-See [CHANGELOG.md](https://github.com/cdviz-dev/send-cdevents/blob/main/CHANGELOG.md) for details.
-
-## Usage
-
-\`\`\`yaml
-- name: Send CDEvent
-  uses: cdviz-dev/send-cdevents@$VERSION
-  with:
-    data: |
-      {
-        \"context\": {
-          \"version\": \"0.4.1\",
-          \"source\": \"github-actions\",
-          \"type\": \"dev.cdevents.taskrun.started.0.2.0\"
-        },
-        \"subject\": {
-          \"id\": \"\${{ github.run_id }}\",
-          \"type\": \"taskRun\",
-          \"content\": {
-            \"taskName\": \"ci-build\"
-          }
-        }
-      }
-    url: \"https://your-webhook-endpoint.com/cdevents\"
-\`\`\`"
-  
-  # Update major version tag (e.g., v1)  
+  # Update major version tag (e.g., v1)
   echo "Updating major version tag: $MAJOR_VERSION"
   git tag -f -a "$MAJOR_VERSION" -m "Release $MAJOR_VERSION (latest: $VERSION)"
   git push origin "$MAJOR_VERSION" --force
-  
+
   echo "=== Release completed! ==="
   echo "✅ Created version tag: $VERSION"
   echo "✅ Created GitHub release: $VERSION"
-  echo "✅ Updated major tag: $MAJOR_VERSION" 
+  echo "✅ Updated major tag: $MAJOR_VERSION"
   echo "📦 GitHub Marketplace will auto-update from the major version tag"
 '''
 
@@ -96,10 +72,10 @@ run = '''
   echo "=== Current Release Status ==="
   echo "Latest tags:"
   git tag --sort=-version:refname | head -5
-  
+
   echo "Current branch:"
   git branch --show-current
-  
+
   echo "Uncommitted changes:"
   git status --porcelain || echo "Working tree clean"
 '''

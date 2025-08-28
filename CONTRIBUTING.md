@@ -17,6 +17,7 @@ mise install
 ```
 
 This will automatically install:
+
 - `dprint` - for code formatting
 - `bun` - for JavaScript tooling
 - `github-cli` - for GitHub operations
@@ -36,6 +37,7 @@ mise run check
 ```
 
 The `check` task runs:
+
 - `dprint check` - validates code formatting
 - `bunx @action-validator/core action.yml` - validates GitHub Action schema
 
@@ -52,6 +54,7 @@ git push origin feature-branch
 ```
 
 The test workflow validates:
+
 - Basic CDEvent sending
 - HTTP endpoint integration
 - Custom headers
@@ -80,6 +83,7 @@ The test workflow validates:
 ### Commit Messages
 
 Use conventional commit format:
+
 ```
 type: description
 
@@ -100,6 +104,7 @@ ci: improve test workflow performance
 4. Click **Run workflow**
 
 The workflow will:
+
 - Run all quality checks
 - Create and push version tag
 - Create GitHub release with usage examples
@@ -118,6 +123,7 @@ mise run release -- v1.2.3
 ```
 
 > **⚠️ Note**: Local releases require:
+>
 > - Write access to the repository
 > - GitHub CLI authenticated (`gh auth login`)
 > - Clean working directory on `main` branch
@@ -127,7 +133,7 @@ mise run release -- v1.2.3
 Follow [semantic versioning](https://semver.org/):
 
 - **Patch** (`v1.0.1`): Bug fixes, documentation updates
-- **Minor** (`v1.1.0`): New features, backward-compatible changes  
+- **Minor** (`v1.1.0`): New features, backward-compatible changes
 - **Major** (`v2.0.0`): Breaking changes, incompatible API changes
 
 ### Release Checklist

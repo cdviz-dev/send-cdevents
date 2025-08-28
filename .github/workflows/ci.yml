@@ -1,4 +1,4 @@
-name: CI
+name: ci
 
 on:
   push:
@@ -8,37 +8,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  validate-action:
+  ci:
     name: Validate GitHub Action
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Validate Action
-        uses: mpalmer/action-validator@v1.5.0
+      - uses: actions/checkout@v5
         with:
-          path: action.yml
-
-  format-check:
-    name: Format Check (dprint)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Setup dprint
-        uses: dprint/check@v2.3
-
-  validate-shell:
-    name: Validate Shell Scripts
-    runs-on: ubuntu-latest
-    if: ${{ hashFiles('**/*.sh') != '' }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: ShellCheck
-        uses: ludeeus/action-shellcheck@master
-        with:
-          scandir: "."
+          fetch-depth: 0
+      - uses: jdx/mise-action@v3
+      - run: mise run ci

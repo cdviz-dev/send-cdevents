@@ -1,4 +1,4 @@
-name: Test Send CDEvents Action
+name: test
 
 on:
   push:
