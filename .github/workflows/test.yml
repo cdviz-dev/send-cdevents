@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 env:
-  VALID_CDEVENT: '{"context":{"version":"0.3.0","id":"test-${{ github.run_id }}","source":"github-action-test","type":"dev.cdevents.build.started.0.1.1","timestamp":"2024-01-01T00:00:00Z"},"subject":{"id":"test-subject","source":"https://github.com/test/repo"}}'
+  VALID_CDEVENT: '{"context":{"version":"0.4.1","source":"github-action-test","type":"dev.cdevents.taskrun.started.0.2.0"},"subject":{"id":"test-task-${{ github.run_id }}","source":"github-action-test","type":"taskRun","content":{"taskName":"ci-test","url":"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}}}'
   INVALID_CDEVENT: '{"invalid": "missing required fields"}'
 
 jobs:
