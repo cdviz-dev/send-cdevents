@@ -110,25 +110,25 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       - name: Send CDEvent
         uses: cdviz-dev/send-cdevents@v1
         with:
-          data: '@.github/cdevents/build-started.json'
+          data: "@.github/cdevents/build-started.json"
           url: "https://your-webhook-endpoint.com/cdevents"
 ```
 
 ## Inputs
 
-| Input | Description | Required | Default |
-|-------|-------------|----------|---------|
-| `data` | JSON data to send. Can be direct JSON string, file path (@file.json), or stdin (@-) | Yes | - |
-| `url` | HTTP URL to send the data to. When specified, automatically enables the HTTP sink | No | - |
-| `config` | TOML configuration content for advanced sink settings | No | - |
-| `directory` | Working directory for relative paths | No | - |
-| `headers` | Additional HTTP headers for the request (one per line, format: "Header-Name: value") | No | - |
-| `additional-args` | Additional arguments to pass to the cdviz-collector send command | No | - |
-| `version` | Version/tag of the cdviz-collector container to use | No | `latest` |
+| Input             | Description                                                                          | Required | Default  |
+| ----------------- | ------------------------------------------------------------------------------------ | -------- | -------- |
+| `data`            | JSON data to send. Can be direct JSON string, file path (@file.json), or stdin (@-)  | Yes      | -        |
+| `url`             | HTTP URL to send the data to. When specified, automatically enables the HTTP sink    | No       | -        |
+| `config`          | TOML configuration content for advanced sink settings                                | No       | -        |
+| `directory`       | Working directory for relative paths                                                 | No       | -        |
+| `headers`         | Additional HTTP headers for the request (one per line, format: "Header-Name: value") | No       | -        |
+| `additional-args` | Additional arguments to pass to the cdviz-collector send command                     | No       | -        |
+| `version`         | Version/tag of the cdviz-collector container to use                                  | No       | `latest` |
 
 ## Environment Variables
 
@@ -139,6 +139,7 @@ The action automatically passes all environment variables starting with `CDVIZ_C
 Environment variables should follow the pattern: `CDVIZ_COLLECTOR__<SECTION>__<SUBSECTION>__<KEY>`
 
 Examples:
+
 - `CDVIZ_COLLECTOR__SINKS__HTTP__HEADERS__X_API_KEY__VALUE` → `sinks.http.headers.x-api-key.value`
 - `CDVIZ_COLLECTOR__SINKS__HTTP__HEADERS__X_SIGNATURE__TOKEN` → `sinks.http.headers.x-signature.token`
 - `CDVIZ_COLLECTOR__SINKS__HTTP__DESTINATION` → `sinks.http.destination`
@@ -146,21 +147,24 @@ Examples:
 ## Data Input Formats
 
 ### Direct JSON String
+
 ```yaml
 with:
   data: '{"type": "dev.cdevents.build.started.0.1.1", "source": "github-action"}'
 ```
 
 ### From File
+
 ```yaml
 with:
-  data: '@path/to/event.json'
+  data: "@path/to/event.json"
 ```
 
 ### From Stdin (for piped data)
+
 ```yaml
 with:
-  data: '@-'
+  data: "@-"
 ```
 
 ## Configuration Content Example
@@ -174,7 +178,7 @@ config: |
   token = "${{ secrets.WEBHOOK_SECRET }}"
   algorithm = "sha256"
   prefix = "sha256="
-  
+
   [sinks.http.headers.x-custom-header]
   type = "static"
   value = "custom-value"
@@ -185,6 +189,7 @@ config: |
 ## Examples
 
 ### Build Event
+
 ```yaml
 - name: Send Build Started Event
   uses: cdviz-dev/send-cdevents@v1
@@ -207,6 +212,7 @@ config: |
 ```
 
 ### Test Event
+
 ```yaml
 - name: Send Test Started Event
   uses: cdviz-dev/send-cdevents@v1

@@ -1,39 +1,39 @@
-name: 'Send CDEvents'
-description: 'Send CDEvents using cdviz-collector send subcommand'
-author: 'cdviz-dev'
+name: "Send CDEvents"
+description: "Send CDEvents using cdviz-collector send subcommand"
+author: "cdviz-dev"
 
 branding:
-  icon: 'send'
-  color: 'blue'
+  icon: "send"
+  color: "blue"
 
 inputs:
   data:
-    description: 'JSON data to send to the sink. Can be direct JSON string, file path (@file.json), or stdin (@-)'
+    description: "JSON data to send to the sink. Can be direct JSON string, file path (@file.json), or stdin (@-)"
     required: true
   url:
-    description: 'HTTP URL to send the data to. When specified, automatically enables the HTTP sink'
+    description: "HTTP URL to send the data to. When specified, automatically enables the HTTP sink"
     required: false
   config:
-    description: 'TOML configuration content for advanced sink settings'
+    description: "TOML configuration content for advanced sink settings"
     required: false
   directory:
-    description: 'Working directory for relative paths'
+    description: "Working directory for relative paths"
     required: false
   headers:
     description: 'Additional HTTP headers for the request (one per line, format: "Header-Name: value")'
     required: false
   additional-args:
-    description: 'Additional arguments to pass to the cdviz-collector send command'
+    description: "Additional arguments to pass to the cdviz-collector send command"
     required: false
   version:
-    description: 'Version/tag of the cdviz-collector container to use'
+    description: "Version/tag of the cdviz-collector container to use"
     required: false
-    default: 'latest'
+    default: "latest"
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
-    - name: 'Create secure config file'
+    - name: "Create secure config file"
       shell: bash
       if: ${{ inputs.config != '' }}
       run: |
@@ -42,25 +42,25 @@ runs:
         cat > .cdviz-config-${{ github.run_id }}.toml << 'EOF'
         ${{ inputs.config }}
         EOF
-        
-    - name: 'Build command arguments'
+
+    - name: "Build command arguments"
       shell: bash
       id: args
       run: |
         ARGS="send --data '${{ inputs.data }}'"
-        
+
         if [ -n "${{ inputs.url }}" ]; then
           ARGS="$ARGS --url '${{ inputs.url }}'"
         fi
-        
+
         if [ -n "${{ inputs.config }}" ]; then
           ARGS="$ARGS --config '.cdviz-config-${{ github.run_id }}.toml'"
         fi
-        
+
         if [ -n "${{ inputs.directory }}" ]; then
           ARGS="$ARGS --directory '${{ inputs.directory }}'"
         fi
-        
+
         if [ -n "${{ inputs.headers }}" ]; then
           while IFS= read -r header; do
             if [ -n "$header" ]; then
@@ -68,15 +68,15 @@ runs:
             fi
           done <<< '${{ inputs.headers }}'
         fi
-        
+
         if [ -n "${{ inputs.additional-args }}" ]; then
           ARGS="$ARGS ${{ inputs.additional-args }}"
         fi
-        
+
         echo "args=$ARGS" >> $GITHUB_OUTPUT
         echo "Command to execute: cdviz-collector $ARGS"
-    
-    - name: 'Run cdviz-collector'
+
+    - name: "Run cdviz-collector"
       shell: bash
       run: |
         # Build environment variable arguments for CDVIZ_COLLECTOR__ prefixed variables
@@ -86,15 +86,15 @@ runs:
             ENV_ARGS="$ENV_ARGS -e $name=$value"
           fi
         done < <(env)
-        
+
         docker run --rm \
           -v "$PWD:/workspace" \
           -w /workspace \
           $ENV_ARGS \
           ghcr.io/cdviz-dev/cdviz-collector:${{ inputs.version }} \
           ${{ steps.args.outputs.args }}
-    
-    - name: 'Clean up config file'
+
+    - name: "Clean up config file"
       shell: bash
       if: ${{ always() && inputs.config != '' }}
       run: |

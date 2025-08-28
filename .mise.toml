@@ -1,0 +1,21 @@
+[tools]
+dprint = "latest"
+bun = "latest"
+
+[tasks.format]
+description = "Format code using dprint"
+run = "dprint fmt"
+
+[tasks.check]
+description = "Check code formatting and run all validations (like CI)"
+run = [
+  "echo '=== Checking code formatting with dprint ==='",
+  "dprint check",
+  "echo '=== Validating action.yml ==='",
+  "bunx @action-validator/core action.yml",
+  "echo '=== All checks completed ==='",
+]
+
+[tasks.ci]
+description = "Run all CI checks locally"
+alias = "check"
