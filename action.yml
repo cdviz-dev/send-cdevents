@@ -37,12 +37,12 @@ runs:
       shell: bash
       if: ${{ inputs.config != '' }}
       run: |
-        # Create config file with restrictive permissions
-        umask 077
+        # Create config file with readable permissions for container
         cat > .cdviz-config-${{ github.run_id }}.toml << 'EOF'
         ${{ inputs.config }}
         EOF
-
+        # Set permissions to be readable by container (644)
+        chmod 644 .cdviz-config-${{ github.run_id }}.toml
     - name: "Build command arguments"
       shell: bash
       id: args
