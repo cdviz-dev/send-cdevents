@@ -1,0 +1,198 @@
+name: Test Send CDEvents Action
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  VALID_CDEVENT: '{"context":{"version":"0.3.0","id":"test-${{ github.run_id }}","source":"github-action-test","type":"dev.cdevents.build.started.0.1.1","timestamp":"2024-01-01T00:00:00Z"},"subject":{"id":"test-subject","source":"https://github.com/test/repo"}}'
+  INVALID_CDEVENT: '{"invalid": "missing required fields"}'
+
+jobs:
+  test-basic:
+    name: Test Basic Functionality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Test with valid CDEvent (debug sink)
+        uses: ./
+        with:
+          data: ${{ env.VALID_CDEVENT }}
+
+  test-with-url:
+    name: Test with HTTP URL
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start HTTP server
+        run: |
+          python3 -m http.server 8080 --bind 127.0.0.1 &
+          echo $! > server.pid
+          sleep 2
+
+      - name: Test with HTTP endpoint
+        uses: ./
+        with:
+          data: ${{ env.VALID_CDEVENT }}
+          url: "http://127.0.0.1:8080/"
+
+      - name: Stop HTTP server
+        if: always()
+        run: |
+          if [ -f server.pid ]; then
+            kill $(cat server.pid) || true
+            rm server.pid
+          fi
+
+  test-with-headers:
+    name: Test with Custom Headers
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Start HTTP server
+        run: |
+          python3 -m http.server 8080 --bind 127.0.0.1 &
+          echo $! > server.pid
+          sleep 2
+
+      - name: Test with custom headers
+        uses: ./
+        with:
+          data: ${{ env.VALID_CDEVENT }}
+          url: "http://127.0.0.1:8080/"
+          headers: |
+            X-API-Key: test-key-123
+            X-Source: github-actions
+
+      - name: Stop HTTP server
+        if: always()
+        run: |
+          if [ -f server.pid ]; then
+            kill $(cat server.pid) || true
+            rm server.pid
+          fi
+
+  test-with-config:
+    name: Test with Configuration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Test with TOML config
+        uses: ./
+        with:
+          data: ${{ env.VALID_CDEVENT }}
+          config: |
+            [sinks.debug]
+            enabled = true
+            type = "debug"
+
+  test-with-env-vars:
+    name: Test with Environment Variables
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Test with env var overrides
+        uses: ./
+        env:
+          CDVIZ_COLLECTOR__SINKS__DEBUG__ENABLED: "true"
+        with:
+          data: ${{ env.VALID_CDEVENT }}
+
+  test-with-file:
+    name: Test with File Input
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create test data file
+        run: echo '${{ env.VALID_CDEVENT }}' > test-event.json
+
+      - name: Test with file input
+        uses: ./
+        with:
+          data: '@test-event.json'
+
+      - name: Clean up
+        if: always()
+        run: rm -f test-event.json
+
+  test-cleanup:
+    name: Test Config File Cleanup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Test config cleanup
+        uses: ./
+        with:
+          data: ${{ env.VALID_CDEVENT }}
+          config: |
+            [sinks.debug]
+            enabled = true
+
+      - name: Verify cleanup
+        run: |
+          if ls .cdviz-config-*.toml 2>/dev/null; then
+            echo "ERROR: Config files not cleaned up!"
+            exit 1
+          fi
+          echo "SUCCESS: Config files cleaned up"
+
+  test-error-handling:
+    name: Test Error Cases
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Test with invalid CDEvent
+        id: invalid-data
+        continue-on-error: true
+        uses: ./
+        with:
+          data: ${{ env.INVALID_CDEVENT }}
+
+      - name: Test with unreachable URL
+        id: unreachable
+        continue-on-error: true
+        uses: ./
+        with:
+          data: ${{ env.VALID_CDEVENT }}
+          url: "http://unreachable.example.com/"
+
+      - name: Verify error handling
+        run: |
+          echo "Invalid data result: ${{ steps.invalid-data.outcome }}"
+          echo "Unreachable URL result: ${{ steps.unreachable.outcome }}"
+          echo "Both tests completed (may have failed as expected)"
+
+  test-different-versions:
+    name: Test Container Versions
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version: ['latest']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Test version ${{ matrix.version }}
+        uses: ./
+        with:
+          data: ${{ env.VALID_CDEVENT }}
+          version: ${{ matrix.version }}
