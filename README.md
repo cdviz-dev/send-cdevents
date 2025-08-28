@@ -70,6 +70,32 @@ jobs:
             prefix = "sha256="
 ```
 
+### Using Environment Variables for Secrets
+
+```yaml
+name: Send CDEvent with Environment Variables
+on:
+  push:
+    branches: [main]
+
+jobs:
+  send-event:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send CDEvent with env vars
+        uses: cdviz-dev/send-cdevents@v1
+        env:
+          CDVIZ_COLLECTOR__SINKS__HTTP__HEADERS__X_SIGNATURE_256__TOKEN: ${{ secrets.WEBHOOK_SECRET }}
+        with:
+          data: '{"type": "dev.cdevents.build.started.0.1.1", "source": "github-action"}'
+          url: "https://your-webhook-endpoint.com/cdevents"
+          config: |
+            [sinks.http.headers.x-signature-256]
+            type = "signature"
+            algorithm = "sha256"
+            prefix = "sha256="
+```
+
 ### Reading from File
 
 ```yaml
@@ -103,6 +129,19 @@ jobs:
 | `headers` | Additional HTTP headers for the request (one per line, format: "Header-Name: value") | No | - |
 | `additional-args` | Additional arguments to pass to the cdviz-collector send command | No | - |
 | `version` | Version/tag of the cdviz-collector container to use | No | `latest` |
+
+## Environment Variables
+
+The action automatically passes all environment variables starting with `CDVIZ_COLLECTOR__` to the cdviz-collector container. This allows you to override configuration values securely using GitHub secrets without exposing them in config files.
+
+### Environment Variable Naming Convention
+
+Environment variables should follow the pattern: `CDVIZ_COLLECTOR__<SECTION>__<SUBSECTION>__<KEY>`
+
+Examples:
+- `CDVIZ_COLLECTOR__SINKS__HTTP__HEADERS__X_API_KEY__VALUE` → `sinks.http.headers.x-api-key.value`
+- `CDVIZ_COLLECTOR__SINKS__HTTP__HEADERS__X_SIGNATURE__TOKEN` → `sinks.http.headers.x-signature.token`
+- `CDVIZ_COLLECTOR__SINKS__HTTP__DESTINATION` → `sinks.http.destination`
 
 ## Data Input Formats
 

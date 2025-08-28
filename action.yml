@@ -79,9 +79,18 @@ runs:
     - name: 'Run cdviz-collector'
       shell: bash
       run: |
+        # Build environment variable arguments for CDVIZ_COLLECTOR__ prefixed variables
+        ENV_ARGS=""
+        while IFS='=' read -r name value; do
+          if [[ "$name" == CDVIZ_COLLECTOR__* ]]; then
+            ENV_ARGS="$ENV_ARGS -e $name=$value"
+          fi
+        done < <(env)
+        
         docker run --rm \
           -v "$PWD:/workspace" \
           -w /workspace \
+          $ENV_ARGS \
           ghcr.io/cdviz-dev/cdviz-collector:${{ inputs.version }} \
           ${{ steps.args.outputs.args }}
     
