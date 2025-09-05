@@ -1,6 +1,6 @@
 # Send CDEvents GitHub Action
 
-A GitHub Action that sends CDEvents using the `cdviz-collector send` subcommand.
+A GitHub Action that sends CDEvents using the [`cdviz-collector send`](https://cdviz.dev/docs/cdviz-collector/send.html) subcommand.
 
 ## Usage
 
@@ -156,7 +156,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Send CDEvent
         uses: cdviz-dev/send-cdevents@v1
@@ -326,4 +326,5 @@ config: |
 
 ## License
 
-This project is licensed under the same license as the cdviz-collector project.
+This project is licensed under the Apache Software License 2.0
+The [cdviz-collector](https://github.com/cdviz-dev/cdviz-collector/) is licensed under the AGPL 3.0 .
