@@ -12,7 +12,7 @@ jobs:
     name: Validate GitHub Action
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - uses: jdx/mise-action@v3
